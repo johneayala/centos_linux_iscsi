@@ -1,0 +1,12 @@
+---
+- name: GET | initiatorname.iscsi contents
+  ansible.builtin.command: 'cat /etc/iscsi/initiatorname.iscsi'
+  register: host_initiatorname_output
+
+- name: SET | host iqn value
+  ansible.builtin.set_fact:
+    host_iqn: "{{ host_initiatorname_output.stdout.split('=')[1] }}"
+
+- name: SHOW | host iqn value
+  ansible.builtin.debug:
+    msg: "Host IQN is {{ host_iqn }}"

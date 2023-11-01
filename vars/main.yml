@@ -1,0 +1,8 @@
+---
+# vars file for role_linux_iscsi
+iscsi_packages:
+  - iscsi-initiator-utils
+  - device-mapper-multipath
+  - device-mapper-multipath-libs
+  - libstoragemgmt-udev
+multipath_template: "multipath.conf.j2"

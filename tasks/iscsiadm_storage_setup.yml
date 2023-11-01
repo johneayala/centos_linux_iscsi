@@ -1,0 +1,32 @@
+---
+- name: DISCOVERY | ISCSI Storage Device
+  ansible.builtin.command: "/sbin/iscsiadm -m discovery -t st -p {{ hostvars[storagename].iscsi_ips[0] }}:{{ hostvars[storagename].iscsi_port }}"
+  register: iscsiadm_discovery_output
+
+- name: SET | iscsi server iqn
+  ansible.builtin.set_fact:
+    iscsi_server_iqn: "{{ ( iscsiadm_discovery_output.stdout_lines[0] ).split(' ')[1] }}"
+
+- name: LOGIN | ISCSI login to Storage Device
+  ansible.builtin.command: "/sbin/iscsiadm -m node -p {{ array_ip_login }} --login"
+  loop: "{{ hostvars[storagename].iscsi_ips }}"
+  loop_control:
+    loop_var: array_ip_login
+
+- name: STARTUP | ISCSI login to startup for Storage Device
+  ansible.builtin.command: "/sbin/iscsiadm -m node -T {{ iscsi_server_iqn }} -p {{ array_ip_startup }} -o update -n node.startup -v automatic"
+  loop: "{{ hostvars[storagename].iscsi_ips }}"
+  loop_control:
+    loop_var: array_ip_startup
+
+- name: SET | automatic ISCSI login on boot
+  ansible.builtin.command: /sbin/iscsiadm -m node -L automatic
+  ignore_errors: True
+
+- name: GET | multipath LUN listing
+  ansible.builtin.command: /sbin/multipath -ll
+  register: lun_listing
+
+- name: SHOW | initial multipath LUN listing
+  ansible.builtin.debug:
+    var: lun_listing.stdout_lines

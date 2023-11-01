@@ -1,0 +1,9 @@
+---
+- name: UPDATE | purefa multipath.conf file
+  ansible.builtin.template:
+    src: "{{ multipath_template }}"
+    dest: /etc/multipath.conf
+    owner: root
+    group: root
+    mode: 0600
+    backup: yes

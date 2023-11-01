@@ -1,0 +1,29 @@
+---
+- name: CONFIG | Pure storage rules for RHEL7 init.d
+  ansible.builtin.template:
+    src: rhel7_99-pure-storage.rules.j2
+    dest: /etc/udev/rules.d/99-pure-storage.rules
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  when: ansible_distribution_major_version|int <= 7
+
+- name: CONFIG | Pure storage rules for RHEL8 init.d
+  ansible.builtin.template:
+    src: rhel8_99-pure-storage.rules.j2
+    dest: /etc/udev/rules.d/99-pure-storage.rules
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  when: ansible_distribution_major_version|int >= 8
+
+- name: CONFIG | udev ISCSI UA rules
+  ansible.builtin.template:
+    src: 90-scsi-ua.rules.j2
+    dest: /lib/udev/rules.d/90-scsi-ua.rules
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes

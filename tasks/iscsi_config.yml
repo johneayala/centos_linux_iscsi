@@ -1,0 +1,48 @@
+---
+- name: BLOCK | For ISCSI initiatorname change
+  block:
+    - name: BACKUP | ISCSI initiatorname.iscsi file before changing
+      ansible.builtin.copy:
+        src: "/etc/iscsi/initiatorname.iscsi"
+        dest: "/etc/iscsi/initiatorname.iscsi_{{ ansible_date_time.iso8601_basic_short }}.bak"
+        remote_src: True
+
+    - name: CONFIG | new iqn initiator name
+      ansible.builtin.shell: '/usr/bin/echo "InitiatorName=`/usr/sbin/iscsi-iname`" > /etc/iscsi/initiatorname.iscsi'
+
+  when: 
+    - new_prov_vm is defined
+    - new_prov_vm | bool
+    - first_time is defined
+    - first_time | bool
+
+
+- name: START | iscsid.socket service
+  ansible.builtin.systemd:
+    name: iscsid.socket
+    state: started
+
+- name: RESTART | iscsid service
+  ansible.builtin.systemd:
+    name: iscsid
+    state: restarted
+  when:
+    - first_time is defined
+    - first_time | bool
+
+- name: ENABLE | iscsi service
+  ansible.builtin.systemd:
+    name: iscsi
+    enabled: yes
+
+- name: ENABLE | multipath configuration
+  ansible.builtin.command: /sbin/mpathconf --enable --with_multipathd y
+
+- name: INCLUDE | multipath.conf file config
+  ansible.builtin.include_tasks: multipath_conf.yml
+
+- name: RESTART | multipathd service
+  ansible.builtin.systemd:
+    name: multipathd
+    state: restarted
+
